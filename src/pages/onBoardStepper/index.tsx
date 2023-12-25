@@ -329,11 +329,12 @@ export default function CustomizedSteppers({ setScreen }: Iprops) {
             ? successBackground
             : background5
         })`,
-        backgroundPosition: 'center',
+        // backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
         backgroundAttachment: 'fixed',
-        top: '0px',
-        left: '0px',
+        backgroundSize: '100% 100%',
+        // top: '0px',
+        // left: '0px',
         padding: '5px 0',
         // border:'1px solid'
       }}

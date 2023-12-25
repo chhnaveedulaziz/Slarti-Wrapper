@@ -1,6 +1,6 @@
 /* eslint-disable prettier/prettier */
 import React, { useState, useContext } from 'react';
-import { Grid, makeStyles, Typography } from '@material-ui/core';
+import { Grid, makeStyles, Typography, Button } from '@material-ui/core';
 import Select from 'react-select';
 import CustomBottomStepControlButtons from '../../common/CustomBottomStepControlButtons';
 import CustomInputField from '../../common/CustomInputField';
@@ -16,13 +16,20 @@ const useStyles = makeStyles(() => ({
   },
   mainGrid: {
     // backgroundColor:'red',
-    width: '40%',
-    marginTop: '4%',
-    marginLeft: '30%',
+    width: '60%',
+    marginTop: '1%',
+    marginLeft: '8%',
   },
   typo: {
     color: '#FFFFFF',
     margin: '10px 0px 10px 0px',
+  },
+  butoon: {
+    background: '#0097A9',
+    boxShadow: '0px 0px 20px rgba(0, 151, 169, 0.51)',
+    borderRadius: '8px',
+    width: 100,
+    height: 40,
   },
 }));
 
@@ -35,16 +42,23 @@ interface IProps {
 function StepThree({ activeStep, handleNext, handleBack, steps }: IProps) {
   const classes = useStyles();
   const gContext = useContext(GlobalContext);
-  console.log('csrData', gContext?.csrData?.commanName);
+  // eslint-disable-next-line no-console
+  console.log('azureRegion', gContext?.azureRegion?.value);
 
   const command = `terraform apply -var is_migration=${gContext?.isMigrating} -var duplicator_zip_file ='${gContext?.dupPluginZip?.path}' -var ssl_certificate_file='${gContext?.ownSslCert?.path}'`;
+  // eslint-disable-next-line no-console
   console.log('command', command);
-  const [aliCloudAccessKeyError, setAlliCloudAccessKeyError] = useState<string>(
-    ''
-  );
-  const [aliCloudAccessKeyValid, setAlliCloudAccessKeyValid] = useState<string>(
+
+  const [subscriptionIdError, setSubscriptionIdError] = useState<string>('');
+  const [subscriptionIdValid, setSubscriptionIdValid] = useState<string>(
     'unchanged'
   );
+
+  const [clientSecretError, setClientSecretError] = useState<string>('');
+  const [clientSecretValid, setClientSecretValid] = useState<string>(
+    'unchanged'
+  );
+
   const [aliCloudAccessSecretError, setAlliCloudAccessSecretError] = useState<
     string
   >('');
@@ -53,344 +67,253 @@ function StepThree({ activeStep, handleNext, handleBack, steps }: IProps) {
   >('unchanged');
 
   const [originError, setOriginError] = useState<string>('');
-  const [availabilityError, setAvailabilityError] = useState<string>('');
+  // const [availabilityError, setAvailabilityError] = useState<string>('');
 
+  const isValidClientSecret = /^[A-Za-z0-9]{34}$/.test(gContext?.clientSecret);
   const disableNext =
-    gContext?.azurAcessKey === '' || gContext?.azureSecretKey === '';
-
-  const isValidAccessKey = /^[A-Za-z0-9]{24}$/.test(gContext?.azurAcessKey);
-  const isValidAccessSecret = /^[A-Za-z0-9]{30}$/.test(
-    gContext?.azureSecretKey
-  );
+    gContext?.azureRegion === '' ||
+    gContext?.subscriptionId === '' ||
+    gContext?.tenatId === '' ||
+    gContext?.clientId === '' ||
+    gContext?.clientSecret === '' ||
+    !isValidClientSecret;
 
   const regions = [
     {
-      value: 'cn-qingdao',
-      label: 'cn-qingdao',
-      zones: [
-        {
-          value: 'cn-qingdao-b',
-          label: 'cn-qingdao-b',
-        },
-        {
-          value: 'cn-qingdao-c',
-          label: 'cn-qingdao-c',
-        },
-      ],
+      value: 'eastus',
+      label: 'eastus',
     },
     {
-      value: 'cn-beijing',
-      label: 'cn-beijing',
-      zones: [
-        {
-          value: 'cn-beijing-a',
-          label: 'cn-beijing-a',
-        },
-        {
-          value: 'cn-beijing-b',
-          label: 'cn-beijing-b',
-        },
-        {
-          value: 'cn-beijing-c',
-          label: 'cn-beijing-c',
-        },
-        {
-          value: 'cn-beijing-d',
-          label: 'cn-beijing-d',
-        },
-        {
-          value: 'cn-beijing-e',
-          label: 'cn-beijing-e',
-        },
-        {
-          value: 'cn-beijing-f',
-          label: 'cn-beijing-f',
-        },
-        {
-          value: 'cn-beijing-g',
-          label: 'cn-beijing-g',
-        },
-      ],
+      value: 'eastus2',
+      label: 'eastus2',
     },
     {
-      value: 'cn-zhangjiakou',
-      label: 'cn-zhangjiakou',
-      zones: [
-        {
-          value: 'cn-zhangjiakou-a',
-          label: 'cn-zhangjiakou-a',
-        },
-        {
-          value: 'cn-zhangjiakou-b',
-          label: 'cn-zhangjiakou-b',
-        },
-      ],
+      value: 'southcentralus',
+      label: 'southcentralus',
     },
     {
-      value: 'cn-huhehaote',
-      label: 'cn-huhehaote',
-      zones: [
-        {
-          value: 'cn-huhehaote-a',
-          label: 'cn-huhehaote-a',
-        },
-        {
-          value: 'cn-huhehaote-b',
-          label: 'cn-huhehaote-b',
-        },
-      ],
+      value: 'westus2',
+      label: 'westus2',
     },
     {
-      value: 'cn-hangzhou',
-      label: 'cn-hangzhou',
-      zones: [
-        {
-          value: 'cn-hangzhou-b',
-          label: 'cn-hangzhou-b',
-        },
-        {
-          value: 'cn-hangzhou-c',
-          label: 'cn-hangzhou-c',
-        },
-        {
-          value: 'cn-hangzhou-d',
-          label: 'cn-hangzhou-d',
-        },
-        {
-          value: 'cn-hangzhou-e',
-          label: 'cn-hangzhou-e',
-        },
-        {
-          value: 'cn-hangzhou-f',
-          label: 'cn-hangzhou-f',
-        },
-        {
-          value: 'cn-hangzhou-g',
-          label: 'cn-hangzhou-g',
-        },
-        {
-          value: 'cn-hangzhou-h',
-          label: 'cn-hangzhou-h',
-        },
-      ],
-    },
-
-    {
-      value: 'cn-shanghai',
-      label: 'cn-shanghai',
-      zones: [
-        {
-          value: 'cn-shanghai-a',
-          label: 'cn-shanghai-a',
-        },
-        {
-          value: 'cn-shanghai-b',
-          label: 'cn-shanghai-b',
-        },
-        {
-          value: 'cn-shanghai-c',
-          label: 'cn-shanghai-c',
-        },
-        {
-          value: 'cn-shanghai-d',
-          label: 'cn-shanghai-d',
-        },
-        {
-          value: 'cn-shanghai-e',
-          label: 'cn-shanghai-e',
-        },
-        {
-          value: 'cn-shanghai-f',
-          label: 'cn-shanghai-f',
-        },
-      ],
+      value: 'australiaeast',
+      label: 'australiaeast',
     },
     {
-      value: 'cn-shenzhen',
-      label: 'cn-shenzhen',
-      zones: [
-        {
-          value: 'cn-shenzhen-a',
-          label: 'cn-shenzhen-a',
-        },
-        {
-          value: 'cn-shenzhen-b',
-          label: 'cn-shenzhen-b',
-        },
-        {
-          value: 'cn-shenzhen-c',
-          label: 'cn-shenzhen-c',
-        },
-        {
-          value: 'cn-shenzhen-d',
-          label: 'cn-shenzhen-d',
-        },
-      ],
+      value: 'southeastasia',
+      label: 'southeastasia',
     },
     {
-      value: 'cn-hongkong',
-      label: 'cn-hongkong',
-      zones: [
-        {
-          value: 'cn-hongkong-a',
-          label: 'cn-hongkong-a',
-        },
-        {
-          value: 'cn-hongkong-b',
-          label: 'cn-hongkong-b',
-        },
-        {
-          value: 'cn-hongkong-c',
-          label: 'cn-hongkong-c',
-        },
-      ],
+      value: 'northeurope',
+      label: 'northeurope',
     },
     {
-      value: 'ap-northeast-1',
-      label: 'ap-northeast-1',
-      zones: [
-        {
-          value: 'ap-northeast-1a',
-          label: 'ap-northeast-1a',
-        },
-      ],
+      value: 'uksouth',
+      label: 'uksouth',
     },
     {
-      value: 'ap-southeast-1',
-      label: 'ap-southeast-1',
-      zones: [
-        {
-          value: 'ap-southeast-1a',
-          label: 'ap-southeast-1a',
-        },
-        {
-          value: 'ap-southeast-1b',
-          label: 'ap-southeast-1b',
-        },
-        {
-          value: 'ap-southeast-1c',
-          label: 'ap-southeast-1c',
-        },
-      ],
+      value: 'westeurope',
+      label: 'westeurope',
     },
     {
-      value: 'ap-southeast-2',
-      label: 'ap-southeast-2',
-      zones: [
-        {
-          value: 'ap-southeast-2a',
-          label: 'ap-southeast-2a',
-        },
-        {
-          value: 'ap-southeast-2b',
-          label: 'ap-southeast-2b',
-        },
-      ],
+      value: 'centralus',
+      label: 'centralus',
     },
     {
-      value: 'ap-southeast-3',
-      label: 'ap-southeast-3',
-      zones: [
-        {
-          value: 'ap-southeast-3a',
-          label: 'ap-southeast-3a',
-        },
-        {
-          value: 'ap-southeast-3b',
-          label: 'ap-southeast-3b',
-        },
-      ],
+      value: 'northcentralus',
+      label: 'northcentralus',
     },
     {
-      value: 'ap-southeast-5',
-      label: 'ap-southeast-5',
-      zones: [
-        {
-          value: 'ap-southeast-5a',
-          label: 'ap-southeast-5a',
-        },
-      ],
+      value: 'westus',
+      label: 'westus',
     },
     {
-      value: 'ap-south-1',
-      label: 'ap-south-1',
-      zones: [
-        {
-          value: 'ap-south-1a',
-          label: 'ap-south-1a',
-        },
-        {
-          value: 'ap-south-1b',
-          label: 'ap-south-1b',
-        },
-      ],
+      value: 'southafricanorth',
+      label: 'southafricanorth',
     },
     {
-      value: 'us-east-1',
-      label: 'us-east-1',
-      zones: [
-        {
-          value: 'us-east-1a',
-          label: 'us-east-1a',
-        },
-        {
-          value: 'us-east-1b',
-          label: 'us-east-1b',
-        },
-      ],
+      value: 'centralindia',
+      label: 'centralindia',
     },
     {
-      value: 'us-west-1',
-      label: 'us-west-1',
-      zones: [
-        {
-          value: 'us-west-1a',
-          label: 'us-west-1a',
-        },
-        {
-          value: 'us-west-1b',
-          label: 'us-west-1b',
-        },
-      ],
+      value: 'jioindiawest',
+      label: 'jioindiawest',
     },
     {
-      value: 'eu-west-1',
-      label: 'eu-west-1',
-      zones: [
-        {
-          value: 'eu-west-1a',
-          label: 'eu-west-1a',
-        },
-        {
-          value: 'eu-west-1b',
-          label: 'eu-west-1b',
-        },
-      ],
-    },
-
-    {
-      value: 'me-east-1',
-      label: 'me-east-1',
-      zones: [
-        {
-          value: 'me-east-1a',
-          label: 'me-east-1a',
-        },
-      ],
+      value: 'koreacentral',
+      label: 'koreacentral',
     },
     {
-      value: 'eu-central-1',
-      label: 'eu-central-1',
-      zones: [
-        {
-          value: 'eu-central-1a',
-          label: 'eu-central-1a',
-        },
-        {
-          value: 'eu-central-1b',
-          label: 'eu-central-1b',
-        },
-      ],
+      value: 'canadacentral',
+      label: 'canadacentral',
+    },
+    {
+      value: 'francecentral',
+      label: 'francecentral',
+    },
+    {
+      value: 'germanywestcentral',
+      label: 'germanywestcentral',
+    },
+    {
+      value: 'norwayeast',
+      label: 'norwayeast',
+    },
+    {
+      value: 'switzerlandnorth',
+      label: 'switzerlandnorth',
+    },
+    {
+      value: 'uaenorth',
+      label: 'uaenorth',
+    },
+    {
+      value: 'brazilsouth',
+      label: 'brazilsouth',
+    },
+    {
+      value: 'centralusstage',
+      label: 'centralusstage',
+    },
+    {
+      value: 'eastusstage',
+      label: 'eastusstage',
+    },
+    {
+      value: 'eastus2stage',
+      label: 'eastus2stage',
+    },
+    {
+      value: 'westusstage',
+      label: 'westusstage',
+    },
+    {
+      value: 'westus2stage',
+      label: 'westus2stage',
+    },
+    {
+      value: 'asia',
+      label: 'asia',
+    },
+    {
+      value: 'asiapacific',
+      label: 'asiapacific',
+    },
+    {
+      value: 'australia',
+      label: 'australia',
+    },
+    {
+      value: 'brazil',
+      label: 'brazil',
+    },
+    {
+      value: 'canada',
+      label: 'canada',
+    },
+    {
+      value: 'europe',
+      label: 'europe',
+    },
+    {
+      value: 'global',
+      label: 'global',
+    },
+    {
+      value: 'india',
+      label: 'india',
+    },
+    {
+      value: 'japan',
+      label: 'japan',
+    },
+    {
+      value: 'uk',
+      label: 'uk',
+    },
+    {
+      value: 'unitedstates',
+      label: 'unitedstates',
+    },
+    {
+      value: 'eastasiastage',
+      label: 'eastasiastage',
+    },
+    {
+      value: 'eastus2euap',
+      label: 'eastus2euap',
+    },
+    {
+      value: 'westcentralus',
+      label: 'westcentralus',
+    },
+    {
+      value: 'westus3',
+      label: 'westus3',
+    },
+    {
+      value: 'southafricawest',
+      label: 'southafricawest',
+    },
+    {
+      value: 'australiacentral',
+      label: 'australiacentral',
+    },
+    {
+      value: 'australiacentral2',
+      label: 'australiacentral2',
+    },
+    {
+      value: 'australiasoutheast',
+      label: 'australiasoutheast',
+    },
+    {
+      value: 'japanwest',
+      label: 'japanwest',
+    },
+    {
+      value: 'koreasouth',
+      label: 'koreasouth',
+    },
+    {
+      value: 'southindia',
+      label: 'southindia',
+    },
+    {
+      value: 'westindia',
+      label: 'westindia',
+    },
+    {
+      value: 'canadaeast',
+      label: 'canadaeast',
+    },
+    {
+      value: 'francesouth',
+      label: 'francesouth',
+    },
+    {
+      value: 'germanynorth',
+      label: 'germanynorth',
+    },
+    {
+      value: 'norwaywest',
+      label: 'norwaywest',
+    },
+    {
+      value: 'switzerlandwest',
+      label: 'switzerlandwest',
+    },
+    {
+      value: 'ukwest',
+      label: 'ukwest',
+    },
+    {
+      value: 'uaecentral',
+      label: 'uaecentral',
+    },
+    {
+      value: 'brazilsoutheast',
+      label: 'brazilsoutheast',
     },
   ];
 
@@ -402,7 +325,7 @@ function StepThree({ activeStep, handleNext, handleBack, steps }: IProps) {
       boxShadow: 'none',
       background: '#362C63',
       color: '#fff',
-      width: 300,
+      // width: 300,
     }),
     singleValue: (base: any) => ({
       ...base,
@@ -420,64 +343,12 @@ function StepThree({ activeStep, handleNext, handleBack, steps }: IProps) {
   return (
     <Grid className={classes.mainGrid}>
       <Typography variant="h3" className={classes.typo}>
-        Please provide your Azure settings
+        Azure Login
       </Typography>
       <Typography variant="subtitle1" className={classes.typo}>
-        Please provide the following main, mandatory Azure Settings:
+        Get Started with 12 months of completely free Azure resources Upgrade
+        later....
       </Typography>
-      <CustomInputField
-        width="90%"
-        title="Azure access key:"
-        align="right"
-        value={gContext?.azurAcessKey}
-        setValue={gContext?.setAzureAccessKey}
-        maxLength={24}
-        error={
-          // eslint-disable-next-line no-nested-ternary
-          gContext?.azurAcessKey === ''
-            ? aliCloudAccessKeyError
-            : isValidAccessKey
-            ? ''
-            : 'This should be exactly 24 alphanumeric characters only. Only lowercase, uppercase and numeric characters are valid.'
-        }
-        valid={aliCloudAccessKeyValid}
-        // error={organizationError}
-        onBlur={() => {
-          if (gContext?.azurAcessKey !== '') {
-            setAlliCloudAccessKeyValid('right');
-          } else {
-            setAlliCloudAccessKeyError("Azure Access Key Can't be Empty!");
-            setAlliCloudAccessKeyValid('wrong');
-          }
-        }}
-      />
-
-      <CustomInputField
-        width="90%"
-        title="Azure secret key:"
-        align="right"
-        value={gContext?.azureSecretKey}
-        setValue={gContext?.setAzureSecretKey}
-        maxLength={30}
-        error={
-          // eslint-disable-next-line no-nested-ternary
-          gContext?.azureSecretKey === ''
-            ? aliCloudAccessSecretError
-            : isValidAccessSecret
-            ? ''
-            : 'This should be exactly 24 alphanumeric characters only. Only lowercase, uppercase and numeric characters are valid.'
-        }
-        valid={aliCloudAccessSecretValid}
-        // error={organizationError}
-        onBlur={() => {
-          if (gContext?.azureSecretKey !== '') {
-            setAlliCloudAccessSecretValid('right');
-          } else {
-            setAlliCloudAccessSecretError("Azure Secret Key Can't be Empty!");
-            setAlliCloudAccessSecretValid('wrong');
-          }
-        }}
-      />
 
       <Grid
         container
@@ -486,18 +357,191 @@ function StepThree({ activeStep, handleNext, handleBack, steps }: IProps) {
         justify="space-between"
         alignItems="center"
       >
-        <Grid item xs={12} md={3}>
-          <Typography align="right" style={{ color: 'white' }}>
-            Region:
+        <Grid item xs={12} sm={12} md={3} lg={3} />
+        <Grid item xs={12} sm={12} md={9} lg={9} align="right">
+          <div
+            style={{
+              display: 'flex',
+              gap: '3%',
+              justifyContent: 'space-between',
+              marginBottom: '1%',
+            }}
+          >
+            <Typography variant="subtitle1" className={classes.typo}>
+              Create your FREE Azure account:
+            </Typography>
+            <Button
+              variant="contained"
+              color="primary"
+              // onClick={handleNext}
+              className={classes.butoon}
+              // disabled={disableNext}
+            >
+              {/* Free */}
+              <a
+                href="https://azure.microsoft.com/free"
+                target="_blank"
+                style={{ color: '#fff', textDecoration: 'none' }}
+              >
+                Free{' '}
+              </a>
+            </Button>
+          </div>
+          <div
+            style={{
+              display: 'flex',
+              gap: '3%',
+              justifyContent: 'space-between',
+              marginBottom: '1%',
+              alignItems: 'flex-end',
+            }}
+          >
+            <Typography variant="subtitle1" className={classes.typo}>
+              Sign in to you account:
+            </Typography>
+            <Button
+              variant="contained"
+              color="primary"
+              // onClick={handleNext}
+              onClick={() => {
+                gContext?.setSubscriptionId('sdfjsldfjskdfjsdlifjw434i');
+                gContext?.setTenantId('sdfjsldfjskdfjsdlifjw434i');
+                gContext?.setClientId('sdfjsldfjskdfjsdlifjw434i');
+                gContext?.setClientSecret('sfjsld2fjssdfsdfsdfkdfjsdlifjw434i');
+                setSubscriptionIdValid('right');
+                setClientSecretValid('right');
+              }}
+              className={classes.butoon}
+              // disabled={disableNext}
+            >
+              Sign In
+            </Button>
+          </div>
+        </Grid>
+      </Grid>
+
+      <Grid
+        container
+        spacing={2}
+        direction="row"
+        justify="space-between"
+        alignItems="center"
+      >
+        <Grid item xs={12} sm={12} md={3} lg={3} />
+        <Grid item xs={12} sm={12} md={9} lg={9} align="right">
+          <CustomInputField
+            width="100%"
+            title="Subscription ID:"
+            align="right"
+            value={gContext?.subscriptionId}
+            setValue={gContext?.setSubscriptionId}
+            disabled={true}
+            valid={subscriptionIdValid}
+            onBlur={() => {
+              if (gContext?.subscriptionId !== '') {
+                setSubscriptionIdValid('right');
+              } else {
+                setSubscriptionIdError("Subscription ID Can't be Empty!");
+                setSubscriptionIdValid('wrong');
+              }
+            }}
+          />
+          <CustomInputField
+            width="100%"
+            title="Tenant ID:"
+            align="right"
+            value={gContext?.tenantId}
+            setValue={gContext?.setTenantId}
+            disabled={true}
+            valid={subscriptionIdValid}
+            onBlur={() => {
+              if (gContext?.tenantId !== '') {
+                setSubscriptionIdValid('right');
+              } else {
+                setSubscriptionIdError("Subscription ID Can't be Empty!");
+                setSubscriptionIdValid('wrong');
+              }
+            }}
+          />
+
+          <CustomInputField
+            width="100%"
+            title="Client ID:"
+            align="right"
+            value={gContext?.clientId}
+            setValue={gContext?.setClientId}
+            disabled={true}
+            valid={subscriptionIdValid}
+            onBlur={() => {
+              if (gContext?.clientId !== '') {
+                setSubscriptionIdValid('right');
+              } else {
+                setSubscriptionIdError("Subscription ID Can't be Empty!");
+                setSubscriptionIdValid('wrong');
+              }
+            }}
+          />
+
+          <CustomInputField
+            width="100%"
+            title="Client Secret:"
+            align="right"
+            value={gContext?.clientSecret}
+            setValue={gContext?.setClientSecret}
+            maxLength={34}
+            type="password"
+            disabled={true}
+            error={
+              // eslint-disable-next-line no-nested-ternary
+              gContext?.clientSecret === ''
+                ? clientSecretError
+                : isValidClientSecret
+                ? ''
+                : 'This should be exactly 34 alphanumeric characters only. Only lowercase, uppercase and numeric characters are valid.'
+            }
+            valid={clientSecretValid}
+            onBlur={() => {
+              if (gContext?.clientSecret !== '') {
+                setClientSecretValid('right');
+              } else {
+                setClientSecretError("Azure Secret Key Can't be Empty!");
+                setClientSecretValid('wrong');
+              }
+            }}
+          />
+        </Grid>
+      </Grid>
+      <br />
+      <Grid
+        container
+        direction="row"
+        justify="space-between"
+        alignItems="center"
+      >
+        <Grid item xs={12} sm={12} md={8} lg={8}>
+          <Typography style={{ color: 'white' }}>
+            Which Azure region would you like to create your new resources?
           </Typography>
         </Grid>
-        <Grid item xs={12} md={9}>
+        <Grid item xs={12} sm={12} md={4} lg={4} />
+      </Grid>
+      <br />
+      <Grid
+        container
+        spacing={2}
+        direction="row"
+        justify="space-between"
+        alignItems="center"
+      >
+        <Grid item xs={12} sm={12} md={6} lg={6} />
+        <Grid item xs={12} sm={12} md={6} lg={6}>
           <Select
             value={gContext?.azureRegion}
             options={regions}
             onChange={(e) => {
               gContext?.setAzureRegion(e);
             }}
+            menuPlacement="top"
             styles={style}
             style={{ color: '#fff!important' }}
             error={gContext?.azureRegion?.value === '' ? originError : ''}
@@ -515,39 +559,7 @@ function StepThree({ activeStep, handleNext, handleBack, steps }: IProps) {
         </Grid>
       </Grid>
 
-      <Grid
-        container
-        spacing={2}
-        direction="row"
-        justify="space-between"
-        alignItems="center"
-        style={{ paddingBottom: '5%' }}
-      >
-        <Grid item xs={12} md={3}>
-          <Typography align="right" style={{ color: 'white' }}>
-            Avaliblity Zones:
-          </Typography>
-        </Grid>
-        <Grid item xs={12} md={9}>
-          <Select
-            value={gContext?.azureZone}
-            options={gContext?.azureRegion?.zones}
-            onChange={(e) => gContext?.setAzureZone(e)}
-            styles={style}
-            setValue={gContext?.setAzureZone}
-            onBlur={() => setAvailabilityError("Availability Can't be Empty!")}
-          />
-          <div>
-            <Typography
-              className="text-danger"
-              color="secondary"
-              style={{ fontSize: 12 }}
-            >
-              {gContext?.azureZone?.value === '' ? availabilityError : ''}
-            </Typography>
-          </div>
-        </Grid>
-      </Grid>
+      <br />
 
       <CustomBottomStepControlButtons
         disableNext={disableNext}

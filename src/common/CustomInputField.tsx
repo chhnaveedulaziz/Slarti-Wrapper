@@ -15,16 +15,17 @@ const useStyles = makeStyles(() => ({
     display: 'flex',
     alignItems: 'center',
     padding: 4,
+    minWidth: '446px',
     border: '1px solid transparent',
   },
   input: {
     border: 'none',
     color: 'white',
-    height: 30,
+    height: 25,
     fontSize: 18,
     backgroundColor: '#362C63',
     outline: 'none',
-    width: '100%',
+    minWidth: '425px',
   },
   inputBoxError: {
     color: 'white',
@@ -34,6 +35,8 @@ const useStyles = makeStyles(() => ({
     alignItems: 'center',
     padding: 4,
     border: '1px solid red',
+    minWidth: '446px',
+
   },
   inputBoxSuccess: {
     color: 'white',
@@ -43,6 +46,8 @@ const useStyles = makeStyles(() => ({
     alignItems: 'center',
     padding: 4,
     border: '1px solid green',
+    minWidth: '446px',
+
   },
 }));
 
@@ -66,6 +71,7 @@ function CustomInputField({
   value,
   setValue,
   type = 'text',
+  disabled,
   error,
   onBlur,
   valid,
@@ -78,15 +84,13 @@ function CustomInputField({
       spacing={2}
       style={{ width }}
       direction="row"
-      justify="space-between"
+      // justify="space-between"
       alignItems="center"
     >
-      <Grid item xs={12} md={3}>
-        <Typography align={align} style={{ color: 'white' }}>
-          {title}
-        </Typography>
+      <Grid item xs={12} md={4}>
+        <Typography style={{ color: 'white' }}>{title}</Typography>
       </Grid>
-      <Grid item xs={12} md={9}>
+      <Grid item xs={12} md={8}>
         <div
           className={clsx(
             valid === 'unchanged'
@@ -107,6 +111,7 @@ function CustomInputField({
             onBlur={onBlur}
             type={type}
             maxLength={maxLength}
+            disabled={disabled}
           />
           {valid === 'unchanged' ? (
             ''

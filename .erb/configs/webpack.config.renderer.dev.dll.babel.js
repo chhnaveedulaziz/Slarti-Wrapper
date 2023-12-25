@@ -31,6 +31,7 @@ export default merge(baseConfig, {
 
   entry: {
     renderer: Object.keys(dependencies || {}),
+    preload: './src/main.dev.ts'
   },
 
   output: {

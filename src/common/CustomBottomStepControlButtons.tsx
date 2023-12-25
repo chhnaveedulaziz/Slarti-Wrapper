@@ -17,11 +17,14 @@ const useStyles = makeStyles(() => ({
     background: '#362C63',
     border: ' 2px solid #0097A9',
     borderRadius: '8px',
+    color: '#0097A9',
+    textTransform: 'capitalize',
   },
   nextButton: {
     background: '#0097A9',
     boxShadow: '0px 0px 20px rgba(0, 151, 169, 0.51)',
     borderRadius: '8px',
+    textTransform: 'capitalize',
   },
 }));
 
@@ -39,7 +42,7 @@ function CustomBottomStepControlButtons({
   const classes = useStyles();
   return (
     <Grid container>
-      <Grid item xs={12} md={3}>
+      <Grid item xs={12} md={6}>
         {activeStep === 0 ? (
           ''
         ) : (
@@ -55,11 +58,7 @@ function CustomBottomStepControlButtons({
         )}
       </Grid>
 
-      <Grid xs={12} md={3} />
-
-      <Grid xs={12} md={3} />
-
-      <Grid xs={12} md={3}>
+      <Grid item xs={12} md={6} align="right">
         <Button
           variant="contained"
           color="primary"

@@ -96,6 +96,8 @@ function Welcome({ setScreen }: WelocomeProps) {
         >
           <Typography className={classes.btnText}>Let's get started</Typography>
         </Button>
+
+        <Button id="SignIn"> Signin </Button>
       </Grid>
     </Grid>
   );

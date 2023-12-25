@@ -12,10 +12,13 @@
  import 'core-js/stable';
  import 'regenerator-runtime/runtime';
  import path from 'path';
- import { app, BrowserWindow, shell } from 'electron';
+ import { app, BrowserWindow, shell, ipcMain  } from 'electron';
  import { autoUpdater } from 'electron-updater';
  import log from 'electron-log';
  import MenuBuilder from './menu';
+ import AuthProvider from "./AuthProvider";
+ import { FetchManager } from "./FetchManager";
+ import { GRAPH_CONFIG, IPC_MESSAGES } from "./Constants";
  
  export default class AppUpdater {
    constructor() {
@@ -23,6 +26,39 @@
      autoUpdater.logger = log;
      autoUpdater.checkForUpdatesAndNotify();
    }
+
+   private static createAuthWindow(): BrowserWindow {
+    return new BrowserWindow({
+        width: 400,
+        height: 600
+    });
+  }
+
+  static authProvider: AuthProvider;
+  public static async login(): Promise<void> {
+    console.log("here22 aaa");
+    const authWindow = AppUpdater.createAuthWindow();
+    console.log("here22 bbb ");
+    try{
+      AppUpdater.authProvider = new AuthProvider();
+      //AppUpdater.networkModule = new FetchManager();
+      const account = await AppUpdater.authProvider.login(authWindow);
+      console.log(account);
+      console.log("tenant id is -" + account.tenantId);
+    }
+    catch(e){
+      console.log(e);
+    }
+    
+    console.log("here22 ccc");
+   
+    
+    //await AppUpdater.loadBaseUI();
+    //AppUpdater.publish(IPC_MESSAGES.SHOW_WELCOME_MESSAGE, account);
+    authWindow.close();
+  }
+
+
  }
  
  let mainWindow: BrowserWindow | null = null;
@@ -51,6 +87,10 @@
      )
      .catch(console.log);
  };
+
+  
+//saikumar
+ipcMain.on(IPC_MESSAGES.LOGIN, AppUpdater.login);
  
  const createWindow = async () => {
    if (
@@ -81,6 +121,8 @@
      webPreferences: {
        nodeIntegration: true,
        nodeIntegrationInWorker: true,
+       //contextIsolation : true,
+       preload: path.join(__dirname, 'preload.js'),
      },
    });
  

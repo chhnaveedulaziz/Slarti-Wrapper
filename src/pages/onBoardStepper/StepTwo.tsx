@@ -13,7 +13,7 @@
 /* eslint-disable object-shorthand */
 /* eslint-disable prettier/prettier */
 /* eslint-disable no-console */
-import React, { useState, useMemo, useContext } from 'react';
+import React, { useState, useEffect, useMemo, useContext } from 'react';
 import { Grid, makeStyles, Typography, Button } from '@material-ui/core';
 import axios from 'axios';
 import ChipInput from 'material-ui-chip-input';
@@ -30,7 +30,7 @@ import CustomFileUploader from '../../common/CustomFileUploader';
 import GlobalContext from '../../context/GlobalContext';
 const fsLibrary = require('fs');
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   mainGrid: {
     width: '80%',
     marginTop: '1%',
@@ -56,13 +56,22 @@ const useStyles = makeStyles(() => ({
     borderRadius: '6px',
     background: '#362C63',
     height: '80%',
-    padding: '5%',
-    width: '569px',
+    padding: '2%',
+    width: '440px',
+    minHeight: 100,
     color: 'white',
-    outline: 'none !important',
+    outline: 'none',
+    border: 'none',
     '&..MuiInputBase-input:focus': {
       outline: 'none',
       color: 'white',
+    },
+  },
+  bottomBtn: {
+    marginTop: '20px',
+    width: '100%',
+    [theme.breakpoints.up('md')]: {
+      width: '70%',
     },
   },
 }));
@@ -80,6 +89,7 @@ const ZEROSSL_ACCESS_KEY = '2a22431b6d92c603e28802440affe108';
 function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
   const gContext = useContext(GlobalContext);
   const classes = useStyles();
+  const [searchText, setSearchText] = useState<string>('');
   const [countryCode, setCountryCode] = useState<string>('');
   const [countryCodeError, setCountryCodeError] = useState<string>('');
   const [verficationMethodCodeError, setVerficationMethodCodeError] = useState<
@@ -87,14 +97,21 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
   >('');
   const [state, setState] = useState<string>('');
   const [stateError, setStateError] = useState<string>('');
+  const [stateValid, setStateValid] = useState<string>('unchanged');
   const [locality, setLocality] = useState<string>('');
   const [localityError, setLocalityError] = useState<string>('');
+  const [localityValid, setLocalityValid] = useState<string>('unchanged');
   const [organization, setOrganization] = useState<string>('');
   const [organizationError, setOrganizationError] = useState<string>('');
+  const [organizationValid, setOrganizationValid] = useState<string>(
+    'unchanged'
+  );
   const [orgUnit, setOrgUnit] = useState<string>('');
   const [orgUnitError, setOrgUnitError] = useState<string>('');
+  const [orgUnitValid, setOrgUnitValid] = useState<string>('unchanged');
   const [commonName, setCommonName] = useState<string>('');
   const [commonNameError, setCommonNameError] = useState<string>('');
+  const [commonNameValid, setCommonNameValid] = useState<string>('unchanged');
   const [csr, setCsr] = useState<string>('');
   const [alternativeChips, setAlternativesChips] = useState<string[]>([]);
   const [certificateGenerated, setCertificateGenerated] = useState<boolean>(
@@ -143,12 +160,14 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
     },
   ];
 
+  console.log(gContext?.caBundle);
   const changeHandler = (value: any) => {
     setCountryCode(value);
   };
+
   const changeVerificatonHandler = (value: any) => {
     console.log('value', value);
-    gContext?.setVerificationMethod(value);
+    // gContext?.setVerificationMethod(value);
     if (value?.value === 'email') {
       setshowEmailVerification(true);
       setshowCnameVerification(false);
@@ -160,12 +179,16 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
 
     setverificationSelection(value?.value);
   };
+
+  console.log(gContext?.verMethod?.value);
   const changeEmailHandler = (value: any) => {
     console.log('value', value);
     gContext?.setVerificationEmail && gContext?.setVerificationEmail(value);
     setselectedEmail(value?.value);
     console.log('gContext?.verEmail', gContext?.verEmail);
   };
+
+  console.log('gContext?.verEmail', gContext?.verEmail);
 
   let displayField1 = 'none';
   let displayField2 = 'none';
@@ -174,27 +197,29 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
   if (gContext?.generateCsr) displayField2 = 'block';
 
   const getInputValue = (e: any) => {
-    if (e.target.id === 'sslCertificate') {
-      gContext?.setOwnSSL(e.target.files[0]);
-    }
-    if (e.target.id === 'csr') {
-      // setCsr(e.target.files[0].name);
-      gContext?.setOwnCsr(e.target.files[0]);
-    }
+    console.log(e.target.files[0].name);
+    // if (e.target.id === 'sslCertificate') {
+    //   gContext?.setOwnSSL(e.target.files[0]);
+    // }
+    // if (e.target.id === 'csr') {
+    //   // setCsr(e.target.files[0].name);
+    //   gContext?.setOwnCsr(e.target.files[0]);
+    // }
   };
 
   const isDomainValid = /^(?!:\/\/)(?=.{1,255}$)((.{1,63}\.){1,127}(?![0-9]*$)[a-z0-9-]+\.?)$/.test(
     commonName
   );
 
+  console.log(gContext?.ownCsr?.name);
   // eslint-disable-next-line no-nested-ternary
   const conditionOne = gContext?.obtainNewSsl
     ? false
-    : gContext?.ownSslCert?.name !== '';
+    : gContext?.ownSslCert?.name && gContext?.privateKey?.name;
 
   const conditionSecond = gContext?.generateCsr
     ? false
-    : gContext?.ownCsr?.name !== '';
+    : gContext?.ownCsr?.name;
 
   const conditonThird =
     countryCode === '' ||
@@ -202,7 +227,8 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
     locality === '' ||
     organization === '' ||
     orgUnit === '' ||
-    commonName === '';
+    commonName === '' ||
+    !isDomainValid;
   // eslint-disable-next-line no-nested-ternary
   const disableNext = conditionOne
     ? true
@@ -212,23 +238,49 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
     ? true
     : !conditonThird;
 
+  // const style = {
+  //   control: (base: any) => ({
+  //     ...base,
+  //     border: 0,
+  //     // This line disable the blue border
+  //     boxShadow: 'none',
+  //     backgroundColor: '#362C63',
+  //     color: '#fff',
+  //     width: '455px',
+  //     margin: '0 4px',
+  //   }),
+  //   singleValue: (base: any) => ({
+  //     ...base,
+  //     color: '#fff',
+  //     backgroundColor: '#362C63',
+  //   }),
+  //   option: (provided: any) => ({
+  //     ...provided,
+  //     color: '#fff',
+  //     backgroundColor: '#362C63',
+  //     margin: '0 4px',
+  //     paddingTop: '-5px',
+  //   }),
+  // };
   const style = {
     control: (base: any) => ({
       ...base,
       border: 0,
       // This line disable the blue border
       boxShadow: 'none',
-      background: '#362C63',
+      backgroundColor: '#362C63',
       color: '#fff',
-    }),
-    singleValue: (base: any) => ({
-      ...base,
-      color: '#fff',
+      width: '455px',
+      marginLeft: '4px'
     }),
     option: (provided: any) => ({
       ...provided,
+      color: 'white',
+      backgroundColor: '#362C63',
+    }),
+    singleValue: (provided: any) => ({
+      ...provided,
       color: '#fff',
-      background: '#362C63',
     }),
   };
 
@@ -269,7 +321,7 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
         createSSLformdata.append('certificate_csr', CSR);
         createSSLformdata.append('certificate_domains', commonName);
         createSSLformdata.append('certificate_validity_days', '90');
-
+        console.log('========>', createSSLformdata);
         const sslResponse = await axios.post(
           `http://api.zerossl.com/certificates?access_key=${ZEROSSL_ACCESS_KEY}`,
           createSSLformdata
@@ -420,17 +472,35 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
       setshowToastText('error occured');
     }
   };
-
   const handleAddChip = (chip: string) => {
     const oldChips = alternativeChips;
-    oldChips.push(chip);
-    setAlternativesChips(oldChips);
+    const isChipValid = /^(?!:\/\/)(?=.{1,255}$)((.{1,63}\.){1,127}(?![0-9]*$)[a-z0-9-]+\.?)$/.test(
+      chip
+    );
+    if (chip === '' || isChipValid) {
+      oldChips.push(chip);
+      setAlternativesChips(oldChips);
+    } else {
+      alert('Invalid Name, must add proper name!');
+    }
   };
   const handleDeleteChip = (chip: string) => {
     const newArray = alternativeChips?.filter((oldChip) => oldChip !== chip);
     setAlternativesChips(newArray);
   };
-  // const
+
+  useEffect(() => {
+    gContext?.setOwnSSL('');
+    gContext?.setPrivateKey('');
+    gContext?.setCaBundle('');
+  }, [gContext?.obtainNewSsl]);
+
+  useEffect(() => {
+    gContext?.setOwnCsr('');
+  }, [gContext?.generateCsr]);
+  console.log(gContext?.cValues);
+  console.log(gContext?.cName);
+  console.log(gContext.verMethod);
   return (
     <Grid className={classes.mainGrid}>
       <Toaster
@@ -457,12 +527,14 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
       <div style={{ display: 'flex' }}>
         <CustomFileUploader
           width="50%"
-          title="SSL Certificate"
+          title="SSL Certificate (.crt)"
           align="right"
           accept=".crt"
           elemId="sslCertificate"
           fileName={gContext?.ownSslCert?.name}
-          onChange={(e) => getInputValue(e)}
+          onChange={(e) => {
+            gContext?.setOwnSSL(e.target.files[0]);
+          }}
           disabled={!!gContext?.obtainNewSsl || downloadedCertificate !== ''}
         />
         {downloadedCertificate !== '' ? (
@@ -478,10 +550,60 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
         )}
       </div>
 
-      <div style={{ display: displayField1 }}>
+      <div style={{ display: 'flex' }}>
+        <CustomFileUploader
+          width="50%"
+          title="Private Key (.key)"
+          align="right"
+          accept=".key"
+          elemId="privatKey"
+          fileName={gContext?.privateKey?.name}
+          onChange={(e) => {
+            gContext?.setPrivateKey(e.target.files[0]);
+          }}
+          disabled={!!gContext?.obtainNewSsl || downloadedCertificate !== ''}
+        />
+        {downloadedCertificate !== '' ? (
+          <CheckCircleIcon
+            style={{
+              color: '#2aef2a',
+              padding: '16px',
+              marginLeft: '-110px',
+            }}
+          />
+        ) : (
+          ''
+        )}
+      </div>
+
+      <div style={{ display: 'flex' }}>
+        <CustomFileUploader
+          width="50%"
+          title="CA Bundle (.crt) "
+          align="right"
+          accept=".crt"
+          elemId="caBundle"
+          fileName={gContext?.caBundle?.name}
+          onChange={(e) => gContext?.setCaBundle(e.target.files[0])}
+          disabled={!!gContext?.obtainNewSsl || downloadedCertificate !== ''}
+        />
+        {downloadedCertificate !== '' ? (
+          <CheckCircleIcon
+            style={{
+              color: '#2aef2a',
+              padding: '16px',
+              marginLeft: '-110px',
+            }}
+          />
+        ) : (
+          ''
+        )}
+      </div>
+
+      <div style={{ display: displayField1, width: '100%' }}>
         <Typography variant="h6" className={classes.typo}>
           Did you bring your own CSR (certificate signing request), or shall we
-          generate one right now?{' '}
+          generate one right now?
         </Typography>
 
         <CustomSwitchButton
@@ -499,10 +621,12 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
             accept=".csr"
             elemId="csr"
             fileName={gContext?.ownCsr?.name}
-            onChange={(e) => getInputValue(e)}
+            onChange={(e) => {
+              gContext?.setOwnCsr(e.target.files[0]);
+            }}
             disabled={!!gContext?.generateCsr || csrGenerated}
           />
-          {csrGenerated ? (
+          {/* {csrGenerated ? (
             <CheckCircleIcon
               style={{
                 color: '#2aef2a',
@@ -512,9 +636,9 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
             />
           ) : (
             ''
-          )}
+          )} */}
         </div>
-        <div style={{ display: displayField2 }}>
+        <div style={{ display: displayField2, width: '70%' }}>
           {/* CSR Generation */}
 
           {!gContext?.certGenerated ? (
@@ -527,22 +651,31 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
               <Grid
                 container
                 spacing={2}
-                style={{ width: '50%' }}
+                style={{ width: '72%' }}
                 direction="row"
                 justify="space-between"
                 alignItems="center"
                 className={classes.migrationInputGrid}
               >
-                <Grid item xs={12} md={3}>
-                  <Typography align="right" style={{ color: 'white' }}>
+                <Grid item xs={12} md={4}>
+                  <Typography style={{ color: 'white' }}>
                     Country Code
                   </Typography>
                 </Grid>
-                <Grid item xs={12} md={9}>
+                <Grid item xs={12} md={8}>
                   <Select
-                    options={options}
+                    options={
+                      searchText === ''
+                        ? [...options]
+                        : [...options].filter(
+                            (option) =>
+                              option.value.toLowerCase() ===
+                              searchText.toLowerCase()
+                          )
+                    }
                     isDisabled={disableCSRFields}
                     onChange={changeHandler}
+                    onInputChange={(e) => setSearchText(e)}
                     styles={style}
                     style={{
                       color: '#fff!important',
@@ -560,7 +693,7 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
                     <Typography
                       className="text-danger"
                       color="secondary"
-                      style={{ fontSize: 12 }}
+                      style={{ fontSize: 12, padding: '0 5px' }}
                     >
                       {countryCode === '' ? countryCodeError : ''}
                     </Typography>
@@ -568,48 +701,75 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
                 </Grid>
               </Grid>
               <CustomInputField
-                width="50%"
+                width="72%"
                 title="State"
                 align="right"
                 value={state}
                 setValue={setState}
                 error={state === '' ? stateError : ''}
-                onBlur={() => setStateError("State Can't be Empty!")}
-                // disabled={disableCSRFields}
+                valid={stateValid}
+                onBlur={() => {
+                  if (state !== '') {
+                    setStateValid('right');
+                  } else {
+                    setStateError("State Can't be Empty!");
+                    setStateValid('wrong');
+                  }
+                }}
               />
               <CustomInputField
-                width="50%"
+                width="72%"
                 title="Locality"
                 align="right"
                 value={locality}
                 setValue={setLocality}
                 error={locality === '' ? localityError : ''}
-                onBlur={() => setLocalityError("Locality Can't be Empty!")}
+                valid={localityValid}
+                onBlur={() => {
+                  if (locality !== '') {
+                    setLocalityValid('right');
+                  } else {
+                    setLocalityError("Locality Can't be Empty!");
+                    setLocalityValid('wrong');
+                  }
+                }}
               />
               <CustomInputField
-                width="50%"
+                width="72%"
                 title="Organisation"
                 align="right"
                 value={organization}
                 setValue={setOrganization}
                 error={organization === '' ? organizationError : ''}
-                onBlur={() =>
-                  setOrganizationError("Organization Name Can't be Empty!")
-                }
+                valid={organizationValid}
+                onBlur={() => {
+                  if (organization !== '') {
+                    setOrganizationValid('right');
+                  } else {
+                    setOrganizationError("Organization Name Can't be Empty!");
+                    setOrganizationValid('wrong');
+                  }
+                }}
               />
               <CustomInputField
-                width="50%"
+                width="72%"
                 title="Org unit"
                 align="right"
                 value={orgUnit}
                 setValue={setOrgUnit}
                 error={orgUnit === '' ? orgUnitError : ''}
-                onBlur={() =>
-                  setOrgUnitError("Org unit Can't be Empty!, e.g Marketing.")
-                }
+                valid={orgUnitValid}
+                onBlur={() => {
+                  if (orgUnit !== '') {
+                    setOrgUnitValid('right');
+                  } else {
+                    setOrgUnitError("Org unit Can't be Empty!, e.g Marketing.");
+                    setOrgUnitValid('wrong');
+                  }
+                }}
               />
               <CustomInputField
-                width="50%"
+                width="72%"
                 title="Common name"
                 align="right"
                 value={commonName}
@@ -622,22 +782,31 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
                     ? ''
                     : 'Invalid Name'
                 }
-                onBlur={() => setCommonNameError("Common Name Can't be Empty!")}
+                valid={commonNameValid}
+                onBlur={() => {
+                  if (commonName !== '') {
+                    setCommonNameValid('right');
+                  } else {
+                    setCommonNameError("Common Name Can't be Empty!");
+                    setCommonNameValid('wrong');
+                  }
+                }}
               />
 
-              <Grid container spacing={2} style={{ width: '50%' }}>
-                <Grid item md={3}>
-                  <Typography align="right" style={{ color: 'white' }}>
+              <Grid container spacing={2} style={{ width: '72%' }}>
+                <Grid item md={4}>
+                  <Typography style={{ color: 'white' }}>
                     Alternative names
                   </Typography>
                 </Grid>
-                <Grid item md={9}>
+                <Grid item md={8}>
                   <ChipInput
                     className={classes.alternativeNames}
                     value={alternativeChips}
                     onAdd={(chip) => handleAddChip(chip)}
                     onDelete={(chip) => handleDeleteChip(chip)}
                     disabled={disableCSRFields}
+                    disableUnderline="true"
                   />
                 </Grid>
               </Grid>
@@ -680,22 +849,21 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
               <Grid
                 container
                 spacing={2}
-                // style={{ width: '50%' }}
+                style={{ width: '72%' }}
                 direction="row"
                 justify="space-between"
-                alignItems="center"
+                // alignItems="center"
                 className={classes.migrationInputGrid}
               >
                 <Grid item xs={12} md={4}>
-                  <Typography align="right" style={{ color: 'white' }}>
+                  <Typography style={{ color: 'white' }}>
                     Verification method
                   </Typography>
                 </Grid>
-                {/* verification method availabale */}
                 <Grid item xs={12} md={8}>
                   <Select
                     options={verificatoinOptions}
-                    value={gContext?.verMethod}
+                    value={gContext?.verMethod?.value}
                     isDisabled={disableCSRFields}
                     onChange={changeVerificatonHandler}
                     styles={style}
@@ -709,7 +877,7 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
                     }}
                     onBlur={() =>
                       setVerficationMethodCodeError(
-                        'select a verification method'
+                        'Select a verification method'
                       )
                     }
                   />
@@ -717,7 +885,7 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
                     <Typography
                       className="text-danger"
                       color="secondary"
-                      style={{ fontSize: 12 }}
+                      style={{ fontSize: 12, padding: '5px' }}
                     >
                       {verificationSelection === ''
                         ? verficationMethodCodeError
@@ -725,11 +893,11 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
                     </Typography>
                   </div>
                 </Grid>
-                {/* verification method availabale */}
               </Grid>
+
               {/* if selected email verification */}
-              {gContext?.verMethod?.value === 'email' ? (
-                <Grid
+
+              {/* <Grid
                   container
                   spacing={2}
                   // style={{ width: '50%' }}
@@ -745,9 +913,36 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
                   </Grid>
 
                   <Grid item xs={12} md={8}>
+                    <div>
+                      <Typography
+                        className="text-danger"
+                        color="secondary"
+                        style={{ fontSize: 12 }}
+                      >
+                        {verificationSelection === ''
+                          ? verficationMethodCodeError
+                          : ''}
+                      </Typography>
+                    </div>
+                  </Grid>
+                </Grid> */}
+              {showEmailVerification ? (
+                <Grid
+                  container
+                  spacing={2}
+                  style={{ width: '72%' }}
+                  direction="row"
+                  justify="space-between"
+                  alignItems="center"
+                  className={classes.migrationInputGrid}
+                >
+                  <Grid item xs={12} md={4}>
+                    <Typography style={{ color: 'white' }}>Email:</Typography>
+                  </Grid>
+
+                  <Grid item xs={12} md={8}>
                     <Select
                       options={emailForVerification}
-                      value={gContext?.verEmail}
                       // isDisabled={disableCSRFields}
                       onChange={changeEmailHandler}
                       styles={style}
@@ -790,10 +985,45 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
                 // />
                 ''
               )}
+
+              {gContext?.verEmail !== '' ? (
+                <Grid
+                  container
+                  spacing={2}
+                  style={{ width: '50%', marginTop: '3%' }}
+                >
+                  <Grid item md={3} />
+                  <Grid item md={9}>
+                    {!verifyingDomain ? (
+                      <Button
+                        style={{ marginBottom: '50px' }}
+                        variant="contained"
+                        color="primary"
+                        disabled={disableCSRFields}
+                        onClick={() => verifyDomain()}
+                      >
+                        Send Email
+                      </Button>
+                    ) : (
+                      <CircularProgress />
+                    )}
+                  </Grid>
+                  {/* {downloadedCertificate ? (
+                    <Typography className={classes.typo} variant="subtitle2">
+                      {downloadedCertificate}
+                    </Typography>
+                  ) : (
+                    ''
+                  )} */}
+                  {/* for verification of domain */}
+                </Grid>
+              ) : (
+                ''
+              )}
               {/* if selected email verification */}
 
               {/* if CNAME verification */}
-              {gContext?.verMethod?.value === 'cname' ? (
+              {showCnameVerification === true ? (
                 <div>
                   <Typography variant="h6" className={classes.typo}>
                     {gContext?.verMethod?.value === 'cname'
@@ -853,40 +1083,6 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
                 ''
               )}
               {/* if CNAME verification */}
-              {verificationSelection !== '' ? (
-                <Grid
-                  container
-                  spacing={2}
-                  style={{ width: '50%', marginTop: '3%' }}
-                >
-                  <Grid item md={3} />
-                  <Grid item md={9}>
-                    {!verifyingDomain ? (
-                      <Button
-                        style={{ marginBottom: '50px' }}
-                        variant="contained"
-                        color="primary"
-                        disabled={disableCSRFields}
-                        onClick={() => verifyDomain()}
-                      >
-                        Verify Domain
-                      </Button>
-                    ) : (
-                      <CircularProgress />
-                    )}
-                  </Grid>
-                  {/* {downloadedCertificate ? (
-                    <Typography className={classes.typo} variant="subtitle2">
-                      {downloadedCertificate}
-                    </Typography>
-                  ) : (
-                    ''
-                  )} */}
-                  {/* for verification of domain */}
-                </Grid>
-              ) : (
-                ''
-              )}
             </div>
           ) : (
             ''
@@ -895,16 +1091,17 @@ function StepTwo({ activeStep, handleNext, handleBack, steps }: IProps) {
           {/* for verification of domain */}
         </div>
       </div>
-
-      <CustomBottomStepControlButtons
-        // disableNext={!disableNext || !certificateSaved}
-        disableNext={!disableNext}
-        activeStep={activeStep}
-        handleBack={handleBack}
-        handleNext={handleNext}
-        steps={steps}
-        // setScreen={setScreen}
-      />
+      <div className={classes.bottomBtn}>
+        <CustomBottomStepControlButtons
+          // disableNext={!disableNext || !certificateSaved}
+          disableNext={!disableNext}
+          activeStep={activeStep}
+          handleBack={handleBack}
+          handleNext={handleNext}
+          steps={steps}
+          // setScreen={setScreen}
+        />
+      </div>
     </Grid>
   );
 }

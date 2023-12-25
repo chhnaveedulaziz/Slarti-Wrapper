@@ -41,6 +41,20 @@
           .join('')
       );
     }
+
+    window.addEventListener('DOMContentLoaded', function() {
+
+    // UI event handlers
+    document.getElementById("SignIn").addEventListener('click', () => {
+
+      window.electron.ipcRenderer.myPing2('LOGIN', (arg) => {
+      // eslint-disable-next-line no-console
+      console.log(arg);
+    });
+    });
+    });
+
+
   </script>
 </body>
 

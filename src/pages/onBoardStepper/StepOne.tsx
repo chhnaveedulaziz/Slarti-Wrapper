@@ -11,7 +11,7 @@ import CustomFileUploader from '../../common/CustomFileUploader';
 import CustomSwitchButton from '../../common/CustomSwitchButton';
 import GlobalContext from '../../context/GlobalContext';
 
-const useStyles = makeStyles(() => ({
+const useStyles = makeStyles((theme) => ({
   migrationInputGrid: {
     margintop: '10px',
     display: 'flex',
@@ -44,13 +44,20 @@ const useStyles = makeStyles(() => ({
   },
   mainGrid: {
     // backgroundColor:'red',
-    width: '50%',
+    width: '90%',
     marginTop: '4%',
     marginLeft: '5%',
   },
   typo: {
     color: 'white',
     marginTop: '8px',
+  },
+  bottomBtn: {
+    marginTop: '20px',
+    width: '100%',
+    [theme.breakpoints.up('md')]: {
+      width: '50%',
+    },
   },
 }));
 
@@ -81,16 +88,20 @@ function StepOne({
       console.log('(e.target.files', e.target.files);
       gContext?.setPluginZip && gContext?.setPluginZip(e.target.files[0]);
     }
-    if (e.target.id === 'zipFileUploaderins') {
-      gContext?.setPluginIns && gContext?.setPluginIns(e.target.files[0]);
-    }
+    // if (e.target.id === 'zipFileUploaderins') {
+    //   gContext?.setPluginIns && gContext?.setPluginIns(e.target.files[0]);
+    // }
   };
-  console.log('gContext?.dupPluginZip?.name', gContext?.dupPluginZip?.name);
+  console.log(
+    'gContext?.dupPluginZip?.name',
+    gContext?.dupPluginZip?.name !== undefined ? true : false
+  );
   console.log('gContext?.isMigrating', gContext?.isMigrating);
+
   console.log(
     'condition',
     gContext?.isMigrating
-      ? gContext?.dupPluginZip?.name !== ''
+      ? gContext?.dupPluginZip?.name !== undefined
         ? false
         : true
       : false
@@ -114,23 +125,25 @@ function StepOne({
       />
 
       <div style={{ display: displayFields }}>
-        <Grid style={{ width: '60%' }}>
+        <Grid style={{ width: '70%' }}>
           <Typography className={classes.typo}>
             You have choosen migration! Please provide the zip file created by
             the Wordpress Duplicator plugin:
           </Typography>
         </Grid>
 
+        <br />
         <CustomFileUploader
           align="center"
-          width="80%"
-          title="Duplicator plugin zip file:"
+          width="100%"
+          title=""
           accept=".zip"
           elemId="zipFileUploader"
           fileName={gContext?.dupPluginZip?.name}
           onChange={(e) => getInputValue(e)}
           disabled={false}
         />
+        <br />
 
         {/* <CustomFileUploader
           align="center"
@@ -143,19 +156,22 @@ function StepOne({
           disabled={false}
         /> */}
       </div>
-
-      <CustomBottomStepControlButtons
-        disableNext={
-          gContext?.isMigrating && gContext?.dupPluginZip?.path !== ''
-            ? false
-            : false
-        }
-        setScreen={setScreen}
-        activeStep={activeStep}
-        handleBack={handleBack}
-        handleNext={handleNext}
-        steps={steps}
-      />
+      <div className={classes.bottomBtn}>
+        <CustomBottomStepControlButtons
+          disableNext={
+            gContext?.isMigrating
+              ? gContext?.dupPluginZip?.name !== undefined
+                ? false
+                : true
+              : false
+          }
+          setScreen={setScreen}
+          activeStep={activeStep}
+          handleBack={handleBack}
+          handleNext={handleNext}
+          steps={steps}
+        />
+      </div>
     </Grid>
   );
 }

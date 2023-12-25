@@ -126,11 +126,6 @@ const useStyles = makeStyles(() => ({
 function StepFour({ activeStep, handleNext, handleBack, steps }: IProps) {
   const gContext = useContext(GlobalContext);
   const classes = useStyles();
-  const [currency, setCurrency] = useState({
-    value: 'USD',
-    label: 'USD',
-  });
-
   const [instanceTypeError, setInstanceTypeError] = useState<string>('');
   const [instanceSeriesError, setInstanceSeriesError] = useState<string>('');
   const [fetchingPriceLoading, setFetchingPriceLoading] = useState<boolean>(
@@ -166,7 +161,9 @@ function StepFour({ activeStep, handleNext, handleBack, steps }: IProps) {
       console.log(
         `https://prices.azure.com/api/retail/prices?currencyCode='${
           gContext?.currency?.value
-        }'&$filter=priceType eq 'Consumption' and serviceFamily eq 'Compute' and armRegionName eq '${gContext?.azureRegion?.value}' and skuName eq '${
+        }'&$filter=priceType eq 'Consumption' and serviceFamily eq 'Compute' and armRegionName eq '${
+          gContext?.azureRegion?.value
+        }' and skuName eq '${
           gContext?.instanceSeries?.value
         }' and productName eq '${
           !gContext?.platAsService
@@ -203,13 +200,15 @@ function StepFour({ activeStep, handleNext, handleBack, steps }: IProps) {
     if (gContext?.instanceType?.value && gContext?.instanceSeries?.value) {
       getAzurePricing();
     }
+    setInstanceTypeError("");
+    setInstanceSeriesError("")
   }, [
     gContext?.instanceType,
     gContext?.instanceSeries?.value,
     gContext?.currency,
   ]);
 
-  const disableNext = false;
+  const disableNext = gContext?.instanceType?.value !== '' &&  gContext?.instanceSeries?.value !== '' ? false : true;
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     gContext?.setPaymentType &&
@@ -544,7 +543,9 @@ function StepFour({ activeStep, handleNext, handleBack, steps }: IProps) {
             error={
               gContext?.instanceType?.value === '' ? instanceTypeError : ''
             }
-            onBlur={() => setInstanceTypeError("Regions Can't be Empty!")}
+            onBlur={() =>
+              setInstanceTypeError("Instance Tier/Series Can't be Empty!")
+            }
           />
           <div>
             <Typography
@@ -578,7 +579,7 @@ function StepFour({ activeStep, handleNext, handleBack, steps }: IProps) {
             setValue={gContext?.setInstanceSeries}
             value={gContext?.instanceSeries}
             onBlur={() =>
-              setInstanceSeriesError("Availability Can't be Empty!")
+              setInstanceSeriesError("Instance Type Can't be Empty!")
             }
           />
           <div>
@@ -597,7 +598,7 @@ function StepFour({ activeStep, handleNext, handleBack, steps }: IProps) {
 
       <br />
       <Grid container alignItems="flex-end">
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={4}>
           {!gContext?.platAsService ? (
             <div>
               <Typography className={classes.smallTypo} variant="subtitle1">
@@ -633,21 +634,24 @@ function StepFour({ activeStep, handleNext, handleBack, steps }: IProps) {
             ' '
           )}
         </Grid>
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} md={2}>
+          {fetchingPriceLoading ? (
+            // <Grid item xs={12} md={2}>
+            <CircularProgress />
+          ) : (
+            // </Grid>
+            ''
+          )}
+        </Grid>
+        <Grid item xs={12} md={4}>
           <Grid container alignItems="center" spacing={2}>
             <Grid item xs={12}>
               <Typography className={classes.smallTypo} variant="subtitle1">
                 Average monthly cost:
               </Typography>
             </Grid>
-            {fetchingPriceLoading ? (
-              <Grid item xs={12} md={2}>
-                <CircularProgress />
-              </Grid>
-            ) : (
-              ''
-            )}
-            <Grid item xs={12} md={4}>
+
+            <Grid item xs={12} md={6}>
               <Select
                 options={[
                   { value: 'USD', label: 'USD' },
@@ -669,7 +673,14 @@ function StepFour({ activeStep, handleNext, handleBack, steps }: IProps) {
                 margin="dense"
                 className={classes.input}
                 style={{ width: '60%' }}
-                value={gContext?.payment ? gContext?.payment : 0.0}
+                // value={}
+                value={
+                  Math.round(
+                    (gContext?.payment
+                      ? gContext?.payment
+                      : 0.0 + Number.EPSILON) * 100
+                  ) / 100
+                }
                 InputProps={{
                   readOnly: true,
                 }}
@@ -689,6 +700,7 @@ function StepFour({ activeStep, handleNext, handleBack, steps }: IProps) {
         handleBack={handleBack}
         handleNext={handleNext}
         steps={steps}
+        width="100%"
       />
       <br />
     </Grid>

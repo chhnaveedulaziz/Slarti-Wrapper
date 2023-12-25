@@ -19,6 +19,10 @@ interface ContextValues {
   setNewCsr?: () => void;
   ownSslCert?: any;
   setOwnSSL?: ((file: any) => void | undefined) | undefined;
+  setPrivateKey?: ((file: any) => void | undefined) | undefined;
+  privateKey?: any;
+  setCaBundle?: ((file: any) => void | undefined) | undefined;
+  caBundle?: any;
   setCSR?: ((csr: any) => void) | undefined;
   ownCsr?: any;
   setOwnCsr?: ((file: any) => void | undefined) | undefined;
@@ -48,14 +52,16 @@ interface ContextValues {
   emailsForVerification?: string[];
   setEmailsForVerification?: (arr: string[]) => void;
   // step 3
-  azurAcessKey?: string;
-  setAzureAccessKey?: (key: string) => void;
-  azureSecretKey?: string;
-  setAzureSecretKey?: (key: string) => void;
+  subscriptionId: string;
+  setSubscriptionId?: (key: string) => void;
+  tenantId: string;
+  setTenantId?: (key: string) => void;
+  clientId: string;
+  setClientId?: (key: string) => void;
+  clientSecret: string;
+  setClientSecret?: (key: string) => void;
   azureRegion?: string;
   setAzureRegion?: ((key: any) => void) | undefined;
-  azureZone?: string;
-  setAzureZone?: (key: string) => void;
   // step 4
   setScalable?: () => void;
   scalable?: boolean;
@@ -111,9 +117,11 @@ const GlobalProvider = ({ children }: React.ElementType<any> | any) => {
     setIsMigrating(!isMigrating);
   };
   const setPluginZip = (file: any) => {
+    console.log('file', file);
     setDupPluginZip(file);
   };
   const setPluginIns = (file: any) => {
+    console.log('file', file);
     setDupPluginIns(file);
   };
   // for Second screen
@@ -121,6 +129,8 @@ const GlobalProvider = ({ children }: React.ElementType<any> | any) => {
   const [obtainNewSsl, setObtainNewSsl] = useState<boolean>(false);
   const [generateCsr, setGenerateCsr] = useState<boolean>(false);
   const [ownSslCert, setOwnSslCert] = useState<any>(null);
+  const [privateKey, setprivateKey] = useState<any>(null);
+  const [caBundle, setcabundle] = useState<any>(null);
   const [ownCsr, setownCsr] = useState<any>(null);
   const [csrData, setCsrData] = useState<any>({
     countryCode: '',
@@ -157,6 +167,14 @@ const GlobalProvider = ({ children }: React.ElementType<any> | any) => {
   };
   const setOwnSSL = (file: any) => {
     setOwnSslCert(file);
+  };
+
+  const setPrivateKey = (file: any) => {
+    setprivateKey(file);
+  };
+
+  const setCaBundle = (file: any) => {
+    setcabundle(file);
   };
   const setOwnCsr = (file: any) => {
     setownCsr(file);
@@ -207,22 +225,32 @@ const GlobalProvider = ({ children }: React.ElementType<any> | any) => {
     setcValues(records);
   };
   // third screen
-  const [azurAcessKey, setazurAcessKey] = useState<string>('');
-  const setAzureAccessKey = (key: string) => {
-    setazurAcessKey(key);
+
+  const [subscriptionId, setsubscriptionId] = useState<string>('');
+  const setSubscriptionId = (key: string) => {
+    setsubscriptionId(key);
   };
-  const [azureSecretKey, setazureSecretKey] = useState<string>('');
-  const setAzureSecretKey = (key: string) => {
-    setazureSecretKey(key);
+
+  const [tenantId, settenantId] = useState<string>('');
+  const setTenantId = (key: string) => {
+    settenantId(key);
   };
+  
+  const [clientId, setclientId] = useState<string>('');
+  const setClientId = (key: string) => {
+    setclientId(key);
+  };
+
+  const [clientSecret, setclientSecret] = useState<string>('');
+  const setClientSecret = (key: string) => {
+    setclientSecret(key);
+  };
+
   const [azureRegion, setazureRegion] = useState<string>('');
   const setAzureRegion = (region: any) => {
     setazureRegion(region);
   };
-  const [azureZone, setazureZone] = useState<string>('');
-  const setAzureZone = (zone: string) => {
-    setazureZone(zone);
-  };
+
   // fourth screen
   const [scalable, setscalable] = useState<boolean>(false);
   const [instanceType, setinstanceType] = useState<{
@@ -358,6 +386,10 @@ const GlobalProvider = ({ children }: React.ElementType<any> | any) => {
         setNewCsr,
         ownSslCert,
         setOwnSSL,
+        setPrivateKey,
+        privateKey,
+        setCaBundle,
+        caBundle,
         setOwnCsr,
         ownCsr,
         csrData,
@@ -376,14 +408,17 @@ const GlobalProvider = ({ children }: React.ElementType<any> | any) => {
         certGenerated,
         setCertGenerated,
         // step 3
-        azurAcessKey,
-        setAzureAccessKey,
-        azureSecretKey,
-        setAzureSecretKey,
+        subscriptionId,
+        setSubscriptionId,
+        tenantId,
+        setTenantId,
+        clientId,
+        setClientId,
+        clientSecret,
+        setClientSecret,
         azureRegion,
         setAzureRegion,
-        azureZone,
-        setAzureZone,
+        
         // step 4
         scalable,
         setScalable,
