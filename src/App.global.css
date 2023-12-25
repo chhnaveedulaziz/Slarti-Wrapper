@@ -1,0 +1,13 @@
+html {
+  padding: 0;
+  margin: 0;
+}
+input:focus{
+color: white !important;
+}
+input{
+color: white !important;
+}
+body{
+  margin: 0px;
+}
